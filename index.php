@@ -1,12 +1,36 @@
+<?php
+
+$lat=35.71507331660124;
+$lng=139.6873127755067;
+
+session_start();
+
+if( isset($_GET["lat"]) ){
+    $lat = floatval($_GET["lat"]);
+}else{
+    if( isset($_SESSION["lat"]) ){
+        $lat = floatval($_SESSION["lat"]);
+    }
+}
+
+if( isset($_GET["lng"]) ){
+    $lng = floatval($_GET["lng"]);
+}else{
+    if( isset($_SESSION["lng"]) ){
+        $lng = floatval($_SESSION["lng"]);
+    }
+}
+
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>空白：まだ登録されていないスポットを発見しよう</title>
+    <title>ku-haku</title>
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/starter-template.css" rel="stylesheet">
@@ -14,11 +38,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
 
 </head>
-
 <body>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <a class="navbar-brand" href="#">空白</a>
+    <a class="navbar-brand" href="#">ku-haku</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -78,9 +101,9 @@
 
     $(function() {
 
-        var lat = 35.70991620006042;
-        var lng = 139.66740005578086;
-        var zoom = 14;
+        var lat = <?php echo $lat;?>;
+        var lng = <?php echo $lng;?>;
+        var zoom = 16;
 
         // Yahoo Map
         map = new Y.Map("map");
@@ -92,18 +115,18 @@
         map.drawMap(new Y.LatLng(lat,lng), zoom, Y.LayerSetId.NORMAL);
 
         map.bind("moveend", function(){
-            loadSpots();
+            loadSpots(true);
         });
 
         for(var i=0;i<10;i++){
             icon[i] = new Y.Icon('icon/'+i+'.gif');
         }
 
-        loadSpots();
+        loadSpots(false);
 
     });
 
-    function loadSpots(){
+    function loadSpots(push_flag){
         var latlng = map.getCenter();
         var zoom = map.getZoom();
         var lat = latlng.lat();
@@ -121,8 +144,7 @@
             success: function(spots){
                 console.log(spots);
                 for(var i in spots){
-                    console.log(spots[i]["name"]);
-                    console.log(spots[i]["dist"]);
+                    console.log(spots[i]["offset"]+" "+spots[i]["name"]);
                     $("#"+i).html(spots[i]["name"]);
                     $(".link"+i).attr("href",spots[i]["url"]);
                     $(".link"+i).attr("target","_blank");
@@ -135,7 +157,9 @@
             }
         });
         console.log(url);
-
+        if( push_flag == true ){
+            window.history.pushState(null,null,"?lat="+lat+"&lng="+lng);
+        }
     }
 
 
