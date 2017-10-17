@@ -1,4 +1,7 @@
 <?php
+$debug = false;
+
+require_once("secret.php");
 
 $lat=35.71507331660124;
 $lng=139.6873127755067;
@@ -58,7 +61,12 @@ if( isset($_GET["lng"]) ){
                 </div>
             </li>
         </ul>
+        <form action="geocoder.php" class="form-inline my-2 my-lg-0">
+            <input name="address" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">ken-saku</button>
+        </form>
     </div>
+
 </nav>
 
 <div class="container">
@@ -75,6 +83,13 @@ if( isset($_GET["lng"]) ){
             <div><img src="icon/7.gif"><span id="7"></span><a class="link7">[i]</a></div>
             <div><img src="icon/8.gif"><span id="8"></span><a class="link8">[i]</a></div>
             <div><img src="icon/9.gif"><span id="9"></span><a class="link9">[i]</a></div>
+
+            <?php
+            if( $debug == true ){
+                var_dump($_SESSION);
+            }
+            ?>
+
         </div>
         <div class="col-sm-6">
             <div id="map" style="height:400px"></div>
@@ -92,7 +107,7 @@ if( isset($_GET["lng"]) ){
 <script src="js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
-<script type="text/javascript" charset="utf-8" src="http://js.api.olp.yahooapis.jp/OpenLocalPlatform/V1/jsapi?appid=dj0zaiZpPVJmWm1QYUpXU1pWSSZzPWNvbnN1bWVyc2VjcmV0Jng9M2U-"></script>
+<script type="text/javascript" charset="utf-8" src="http://js.api.olp.yahooapis.jp/OpenLocalPlatform/V1/jsapi?appid=<?php echo $appid;?>"></script>
 <script>
 
     var map;
