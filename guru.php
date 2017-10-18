@@ -17,19 +17,11 @@ $range = 2;//1:300m、2:500m、3:1000m、4:2000m、5:3000m
 if( isset($_GET["lat"]) ){
     $lat = floatval($_GET["lat"]);
     $_SESSION["lat"] = $lat;
-}else{
-    if( isset($_SESSION["lat"]) ){
-        $lat = floatval($_SESSION["lat"]);
-    }
 }
 
-if( isset($_GET["lng"]) ){
-    $lng = floatval($_GET["lng"]);
-    $_SESSION["lng"] = $lng;
-}else{
-    if( isset($_SESSION["lng"]) ){
-        $lng = floatval($_SESSION["lng"]);
-    }
+if( isset($_GET["lon"]) ){
+    $lon = floatval($_GET["lon"]);
+    $_SESSION["lon"] = $lon;
 }
 
 $base_param = [
@@ -107,6 +99,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                     mydump("shop_photo: ".$spot->{'name'});
                     break;
                 }
+
 
                 // ユーザ写真がある場合はループを抜ける
                 if(in_array($spot->{'id'},$shop_array)){

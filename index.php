@@ -1,15 +1,17 @@
 <?php
-$debug = false;
+$debug = true;
 
 require_once("secret.php");
 
-$lat=35.71507331660124;
-$lng=139.6873127755067;
+$lat = 35.71507331660124;
+$lng = 139.6873127755067;
+$plugin = "dummy.php";
 
 session_start();
 
 if( isset($_GET["lat"]) ){
     $lat = floatval($_GET["lat"]);
+    $_SESSION["lat"] = $lat;
 }else{
     if( isset($_SESSION["lat"]) ){
         $lat = floatval($_SESSION["lat"]);
@@ -18,9 +20,19 @@ if( isset($_GET["lat"]) ){
 
 if( isset($_GET["lng"]) ){
     $lng = floatval($_GET["lng"]);
+    $_SESSION["lng"] = $lng;
 }else{
     if( isset($_SESSION["lng"]) ){
         $lng = floatval($_SESSION["lng"]);
+    }
+}
+
+if( isset($_GET["plugin"]) ){
+    $plugin = strval($_GET["plugin"]);
+    $_SESSION["plugin"] = $plugin;
+}else{
+    if( isset($_SESSION["plugin"]) ){
+        $plugin = strval($_SESSION["plugin"]);
     }
 }
 
@@ -52,7 +64,7 @@ if( isset($_GET["lng"]) ){
     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">このサイトは？</a>
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">このサイトは？</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     <a class="dropdown-item" href="#">ぐるなびの情報を元に</a>
                     <a class="dropdown-item" href="#">１ｋｍ程度の距離にある</a>
@@ -73,6 +85,16 @@ if( isset($_GET["lng"]) ){
 
     <div class="row">
         <div class="col-sm-6">
+
+            <form>
+                <div class="form-group">
+                    <select class="form-control form-control-sm" id="plugin">
+                        <option value="dummy.php">dummy</option>
+                        <option value="guru.php">guru</option>
+                    </select>
+                </div>
+            </form>
+
             <div><img src="icon/0.gif"><span id="0"></span><a class="link0">[i]</a></div>
             <div><img src="icon/1.gif"><span id="1"></span><a class="link1">[i]</a></div>
             <div><img src="icon/2.gif"><span id="2"></span><a class="link2">[i]</a></div>
@@ -113,6 +135,7 @@ if( isset($_GET["lng"]) ){
     var map;
     var marker = [];
     var icon = [];
+    var plugin = "<?php echo $plugin;?>";
 
     $(function() {
 
@@ -139,6 +162,13 @@ if( isset($_GET["lng"]) ){
 
         loadSpots(false);
 
+        $("#plugin").val("<?php echo $plugin;?>");
+
+        $("#plugin").change(function(){
+            console.log($(this).val());
+            location.href = "index.php?plugin="+$(this).val();
+        });
+
     });
 
     function loadSpots(push_flag){
@@ -146,7 +176,7 @@ if( isset($_GET["lng"]) ){
         var zoom = map.getZoom();
         var lat = latlng.lat();
         var lng = latlng.lng();
-        var url = "guru.php?lat="+lat+"&lon="+lng;
+        var url = plugin+"?lat="+lat+"&lon="+lng;
 
         for(var i=0;i<10;i++){
             map.removeFeature(marker[i]);
@@ -160,6 +190,8 @@ if( isset($_GET["lng"]) ){
                 console.log(spots);
                 for(var i in spots){
                     console.log(spots[i]["offset"]+" "+spots[i]["name"]);
+                    console.log(spots[i]["lat"]);
+                    console.log(spots[i]["lng"]);
                     $("#"+i).html(spots[i]["name"]);
                     $(".link"+i).attr("href",spots[i]["url"]);
                     $(".link"+i).attr("target","_blank");
