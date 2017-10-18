@@ -26,98 +26,117 @@ if( isset($_GET["lon"]) ){
 
 $base_param = [
     "format"=>"json",
-    "keyid"=>$acckey,
     "input_coordinates_mode"=>2,//世界測地系
     "coordinates_mode"=>2,//世界測地系
-    "latitude"=>$lat,
-    "longitude"=>$lon,
-    "range"=>$range
+    "keyid"=>$acckey
 ];
 
-// 写真を取得
-$shop_array = [];
-$photo_total = 0;
-$hit_per_page = 50;
-$json = file_get_contents_cash($photo_uri."?".http_build_query(array_merge($base_param,[
-        "hit_per_page"=>$hit_per_page,
-        "order"=>"distance",
-        "sort"=>1
-])));
+// 件数を取得
+$total = 0;
+$url = $rest_uri."?".http_build_query(array_merge($base_param,[
+        "latitude"=>$lat,
+        "longitude"=>$lon,
+        "range"=>$range
+]));
+$json = file_get_contents_cash($url);
 $obj  = json_decode($json);
 if( $obj->{"gnavi"}->{"error"}->{"code"} == 429 ){
     echo "429";
     mydump($obj);
     exit();
 }
-$data = $obj->{"response"};
-foreach((array)$data as $key => $val){
-    if(strcmp($key, "total_hit_count" ) == 0 ){
-        $photo_total = $val;
-        mydump("photo_total: ".$photo_total);
-    }
-    if(strcmp($key, "hit_per_page" ) == 0 ){
-        $hit_per_page = $val;
-    }
-    for($i = 0; $i < $hit_per_page ; $i++){
-        if(strcmp($key, $i) == 0){
-            $restArray = $val->{'photo'};
-            $shop_id = $restArray->{'shop_id'};
-            array_push($shop_array,$shop_id);
-        }
-    }
-}
-
-// 件数を取得
-$total = 0;
-$json = file_get_contents_cash($rest_uri."?".http_build_query($base_param));
-$obj  = json_decode($json);
-foreach((array)$obj as $key => $val){
-    if(strcmp($key, "total_hit_count" ) == 0 ){
-        $total = $val;
-    }
-}
+$total = $obj->total_hit_count;
+mydump("total_hit_count");
+mydump($total);
 
 // ランクが低い順に取得
 $ret = [];
 $ret_num = 0;
 $hit_per_page = 10;
+$hit_per_photo_page = 0;
 for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
 
-    $json = file_get_contents_cash($rest_uri."?".http_build_query(array_merge($base_param,[
-            "hit_per_page"=>$hit_per_page,
-            "offset"=>$i
-    ])));
+    mydump("offset:".$i);
+
+    $url = $rest_uri."?".http_build_query(array_merge($base_param,[
+            "offset"=>$i,
+            "hit_per_page"=>10,
+            //"hit_per_page"=>$hit_per_page,
+            "latitude"=>$lat,
+            "longitude"=>$lon,
+            "range"=>$range
+    ]));
+    $json = file_get_contents_cash($url);
     $obj  = json_decode($json);
 
+    // 写真を取得するために店舗一覧を作成
+    $shop_array = [];
     foreach((array)$obj as $key => $val){
         if(strcmp($key, "rest") == 0){
             foreach((array)$val as $spot){
+                array_push($shop_array,$spot->{"id"});
+            }
+        }
+    }
+    $shop_query = implode(",",$shop_array);
+    mydump("shop_query:".$shop_query);
+
+    // 店舗一覧の口コミがあるか検索
+    $photo_array = [];
+    $url = $photo_uri."?".http_build_query($base_param)."&shop_id=".$shop_query;
+    $json = file_get_contents_cash($url);
+    $photo_obj = json_decode($json);
+    $data = $photo_obj->{"response"};
+    foreach((array)$data as $key => $val){
+        if(strcmp($key, "total_hit_count" ) == 0 ){
+            $photo_total = $val;
+            mydump("photo_total: ".$photo_total);
+        }
+
+        if(strcmp($key, "hit_per_page" ) == 0 ){
+            $hit_per_photo_page = $val;
+            mydump("hit_per_photo_page:".$hit_per_photo_page);
+        }
+
+        for($j = 0; $j < $hit_per_photo_page ; $j++){
+            if(strcmp($key, $j) == 0){
+                $shop_id = $val->{'photo'}->{'shop_id'};
+                array_push($photo_array,$shop_id);
+            }
+        }
+    }
+
+    // 写真がない店のみ表示
+    foreach((array)$obj as $key => $val){
+        if(strcmp($key, "rest") == 0){
+            foreach((array)$val as $spot){
+
+                $flag = true;
+
                 mydump($spot->{'id'});
 
                 // 写真がある場合はループを抜ける
                 if(checkString($spot->{'image_url'}->{'shop_image1'})){
-                    mydump("shop_photo: ".$spot->{'name'});
-                    break;
+                    mydump($spot->{'id'}." - shop photo");
+                    $flag = false;
                 }
-
 
                 // ユーザ写真がある場合はループを抜ける
-                if(in_array($spot->{'id'},$shop_array)){
-                    mydump("user_photo: ".$spot->{'name'});
-                    break;
+                if(in_array($spot->{'id'},$photo_array)){
+                    mydump($spot->{'id'}." - user photo");
+                    $flag = false;
                 }
 
-                $dist = compute_dist($lat,$lon,$spot->{'latitude'},$spot->{'longitude'});
-
-                array_push($ret,[
-                    'name'=>$spot->{'name'},
-                    'offset'=>$i,
-                    'dist'=>$dist,
-                    'url'=>$spot->{'url'},
-                    'lat'=>$spot->{'latitude'},
-                    'lng'=>$spot->{'longitude'}
-                ]);
-                $ret_num = $ret_num + 1;
+                if( $flag == true ){
+                    array_push($ret,[
+                        'name'=>$spot->{'name'},
+                        'offset'=>$i,
+                        'url'=>$spot->{'url'},
+                        'lat'=>$spot->{'latitude'},
+                        'lng'=>$spot->{'longitude'}
+                    ]);
+                    $ret_num = $ret_num + 1;
+                }
                 if( $ret_num >= 10 ){
                     break 3;
                 }
