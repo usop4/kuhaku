@@ -54,6 +54,7 @@ $ret = [];
 $ret_num = 0;
 $hit_per_page = 10;
 $hit_per_photo_page = 0;
+$zone_count = [];
 for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
 
     mydump("offset:".$i);
@@ -112,6 +113,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
             foreach((array)$val as $spot){
 
                 $flag = true;
+                $zone = 0;
 
                 mydump($spot->{'id'});
 
@@ -127,10 +129,21 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                     $flag = false;
                 }
 
+                // 隣接する場合はループを抜ける
+                $atan2 = 180 + 180 * atan2($spot->{'latitude'}-$lat,$spot->{'longitude'}-$lon) / M_PI;
+                $zone = round($atan2/10);//360度を10度刻み
+                if( isset($zone_count[$zone]) ){
+                    mydump($spot->{'id'}." - neighbor - ".$zone);
+                    $flag = false;
+                }else{
+                    $zone_count[$zone] = 1;
+                }
+
                 if( $flag == true ){
                     array_push($ret,[
                         'name'=>$spot->{'name'},
                         'offset'=>$i,
+                        'zone'=>$zone,
                         'url'=>$spot->{'url'},
                         'lat'=>$spot->{'latitude'},
                         'lng'=>$spot->{'longitude'}
@@ -146,6 +159,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
 }
 
 header("Content-Type: application/json; charset=utf-8");
+array_multisort(array_column($ret,'zone'),$ret);
 $ret = json_encode($ret);
 echo $ret;
 
