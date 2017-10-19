@@ -21,7 +21,7 @@ if( isset($_GET["lat"]) ){
 
 if( isset($_GET["lon"]) ){
     $lon = floatval($_GET["lon"]);
-    $_SESSION["lon"] = $lon;
+    $_SESSION["lng"] = $lon;
 }
 
 $base_param = [
@@ -38,7 +38,7 @@ $url = $rest_uri."?".http_build_query(array_merge($base_param,[
         "longitude"=>$lon,
         "range"=>$range
 ]));
-$json = file_get_contents_cash($url);
+$json = file_get_contents_cache($url);
 $obj  = json_decode($json);
 if( $obj->{"gnavi"}->{"error"}->{"code"} == 429 ){
     echo "429";
@@ -66,7 +66,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
             "longitude"=>$lon,
             "range"=>$range
     ]));
-    $json = file_get_contents_cash($url);
+    $json = file_get_contents_cache($url);
     $obj  = json_decode($json);
 
     // 写真を取得するために店舗一覧を作成
@@ -84,7 +84,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
     // 店舗一覧の口コミがあるか検索
     $photo_array = [];
     $url = $photo_uri."?".http_build_query($base_param)."&shop_id=".$shop_query;
-    $json = file_get_contents_cash($url);
+    $json = file_get_contents_cache($url);
     $photo_obj = json_decode($json);
     $data = $photo_obj->{"response"};
     foreach((array)$data as $key => $val){

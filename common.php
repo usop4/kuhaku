@@ -1,16 +1,23 @@
 <?php
 
 // file_get_contentsのキャッシュ付き
-function file_get_contents_cash($url){
-    $cash_path = "cash/".md5($url);
-    if( file_exists($cash_path) ){
-        $contents = file_get_contents($cash_path);
-        mydump("hit : ".$cash_path);
+function file_get_contents_cache($url){
+    $cache = false;
+    $cache_path = "cache/".md5($url);
+    if( file_exists($cache_path) ){
+        if( mktime() - filemtime("test.php") < 60 * 60 * 24 ){
+            $cache = true;
+        }
+    }
+    if( $cache == true ){
+        $contents = file_get_contents($cache_path);
+        mydump($cache_path." hit!");
     }else{
         $contents = file_get_contents($url);
-        file_put_contents($cash_path,$contents);
-        mydump($cash_path);
+        file_put_contents($cache_path,$contents);
+        mydump($cache_path);
     }
+
     return $contents;
 }
 
