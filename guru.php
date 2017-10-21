@@ -24,6 +24,12 @@ if( isset($_GET["lon"]) ){
     $_SESSION["lng"] = $lon;
 }
 
+if( isset($_GET["range"]) ){
+    $range = intval($_GET["range"]);
+    $_SESSION["range"] = $range;
+}
+
+
 $base_param = [
     "format"=>"json",
     "input_coordinates_mode"=>2,//世界測地系

@@ -5,7 +5,7 @@ require_once("secret.php");
 
 $lat = 35.71507331660124;
 $lng = 139.6873127755067;
-$plugin = "dummy.php";
+$plugin = "dummy.php?";
 
 session_start();
 
@@ -24,6 +24,15 @@ if( isset($_GET["lng"]) ){
 }else{
     if( isset($_SESSION["lng"]) ){
         $lng = floatval($_SESSION["lng"]);
+    }
+}
+
+if( isset($_GET["range"]) ){
+    $range = intval($_GET["range"]);
+    $_SESSION["range"] = $range;
+}else{
+    if( isset($_SESSION["range"]) ){
+        $range = intval($_SESSION["range"]);
     }
 }
 
@@ -89,22 +98,27 @@ if( isset($_GET["plugin"]) ){
             <form>
                 <div class="form-group">
                     <select class="form-control form-control-sm" id="plugin">
-                        <option value="dummy.php">dummy</option>
-                        <option value="guru.php">guru</option>
+                        <option value="guru.php?range=2">ぐるなび500m圏内、口コミなし</option>
+                        <option value="guru.php?range=3">ぐるなび1km圏内、口コミなし</option>
+                        <option value="dummy.php?">dummy</option>
                     </select>
                 </div>
             </form>
 
-            <div><img src="icon/0.gif"><span id="0"></span><a class="link0">[i]</a></div>
-            <div><img src="icon/1.gif"><span id="1"></span><a class="link1">[i]</a></div>
-            <div><img src="icon/2.gif"><span id="2"></span><a class="link2">[i]</a></div>
-            <div><img src="icon/3.gif"><span id="3"></span><a class="link3">[i]</a></div>
-            <div><img src="icon/4.gif"><span id="4"></span><a class="link4">[i]</a></div>
-            <div><img src="icon/5.gif"><span id="5"></span><a class="link5">[i]</a></div>
-            <div><img src="icon/6.gif"><span id="6"></span><a class="link6">[i]</a></div>
-            <div><img src="icon/7.gif"><span id="7"></span><a class="link7">[i]</a></div>
-            <div><img src="icon/8.gif"><span id="8"></span><a class="link8">[i]</a></div>
-            <div><img src="icon/9.gif"><span id="9"></span><a class="link9">[i]</a></div>
+            <div><img src="icon/0.gif"><span id="0"><img src="icon/loading.gif"></span><a class="link0">[i]</a></div>
+            <div><img src="icon/1.gif"><span id="1"><img src="icon/loading.gif"></span><a class="link1">[i]</a></div>
+            <div><img src="icon/2.gif"><span id="2"><img src="icon/loading.gif"></span><a class="link2">[i]</a></div>
+            <div><img src="icon/3.gif"><span id="3"><img src="icon/loading.gif"></span><a class="link3">[i]</a></div>
+            <div><img src="icon/4.gif"><span id="4"><img src="icon/loading.gif"></span><a class="link4">[i]</a></div>
+            <div><img src="icon/5.gif"><span id="5"><img src="icon/loading.gif"></span><a class="link5">[i]</a></div>
+            <div><img src="icon/6.gif"><span id="6"><img src="icon/loading.gif"></span><a class="link6">[i]</a></div>
+            <div><img src="icon/7.gif"><span id="7"><img src="icon/loading.gif"></span><a class="link7">[i]</a></div>
+            <div><img src="icon/8.gif"><span id="8"><img src="icon/loading.gif"></span><a class="link8">[i]</a></div>
+            <div><img src="icon/9.gif"><span id="9"><img src="icon/loading.gif"></span><a class="link9">[i]</a></div>
+
+            <a href="http://api.gnavi.co.jp/api/scope/" target="_blank">
+                <img src="http://api.gnavi.co.jp/api/img/credit/api_90_35.gif" width="90" height="35" border="0" alt="グルメ情報検索サイト　ぐるなび">
+            </a>
 
             <?php
             if( $debug == true ){
@@ -176,11 +190,11 @@ if( isset($_GET["plugin"]) ){
         var zoom = map.getZoom();
         var lat = latlng.lat();
         var lng = latlng.lng();
-        var url = plugin+"?lat="+lat+"&lon="+lng;
+        var url = plugin+"&lat="+lat+"&lon="+lng;
 
         for(var i=0;i<10;i++){
             map.removeFeature(marker[i]);
-            $("#"+i).html("");
+            $("#"+i).html('<img src="icon/loading.gif">');
         }
 
         $.ajax({
@@ -190,8 +204,6 @@ if( isset($_GET["plugin"]) ){
                 console.log(spots);
                 for(var i in spots){
                     console.log(spots[i]["offset"]+" "+spots[i]["name"]);
-                    console.log(spots[i]["lat"]);
-                    console.log(spots[i]["lng"]);
                     $("#"+i).html(spots[i]["name"]);
                     $(".link"+i).attr("href",spots[i]["url"]);
                     $(".link"+i).attr("target","_blank");
