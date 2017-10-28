@@ -17,13 +17,26 @@ if( isset($_GET["lon"]) ){
     $_SESSION["lon"] = $lon;
 }
 
+$desc = [
+    "APIの利用上限に達したため",
+    "サービスをご利用いただけません。",
+    "またのご利用をお待ちしております。",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+];
 $ret = [];
 $ret_num = 0;
 $hit_per_page = 10;
 $range = 2000;
 for( $i=0; $i<10; $i++ ){
     array_push($ret,[
-        'name'=>"dummy".sprintf("%d",$i+1),
+        //'name'=>"dummy".sprintf("%d",$i+1),
+        'name'=>$desc[$i],
         'offset'=>$i,
         'dist'=>$dist,
         'url'=>"",

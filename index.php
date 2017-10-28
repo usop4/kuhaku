@@ -1,11 +1,11 @@
 <?php
-$debug = true;
+$debug = false;
 
 require_once("secret.php");
 
 $lat = 35.71507331660124;
 $lng = 139.6873127755067;
-$plugin = "dummy.php?";
+$plugin = "guru.php?range=2";// ぐるなび500km圏内
 
 session_start();
 
@@ -33,6 +33,15 @@ if( isset($_GET["range"]) ){
 }else{
     if( isset($_SESSION["range"]) ){
         $range = intval($_SESSION["range"]);
+    }
+}
+
+if( isset($_GET["div"]) ){
+    $div = intval($_GET["div"]);
+    $_SESSION["div"] = $div;
+}else{
+    if( isset($_SESSION["div"]) ){
+        $range = intval($_SESSION["div"]);
     }
 }
 
@@ -100,7 +109,7 @@ if( isset($_GET["plugin"]) ){
                     <select class="form-control form-control-sm" id="plugin">
                         <option value="guru.php?range=2">ぐるなび500m圏内、口コミなし</option>
                         <option value="guru.php?range=3">ぐるなび1km圏内、口コミなし</option>
-                        <option value="dummy.php?">dummy</option>
+                        <option value="dummy.php?">ランダム表示（プラグイン募集中）</option>
                     </select>
                 </div>
             </form>

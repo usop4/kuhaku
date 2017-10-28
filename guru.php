@@ -13,6 +13,13 @@ $photo_uri = "https://api.gnavi.co.jp/PhotoSearchAPI/20150630/";
 $lat   = 35.7192805;
 $lon   = 139.6509221;
 $range = 2;//1:300m、2:500m、3:1000m、4:2000m、5:3000m
+$div = 4;
+
+$ret = [];
+$ret_num = 0;
+$hit_per_page = 10;
+$hit_per_photo_page = 0;
+$zone_count = [];
 
 if( isset($_GET["lat"]) ){
     $lat = floatval($_GET["lat"]);
@@ -29,6 +36,21 @@ if( isset($_GET["range"]) ){
     $_SESSION["range"] = $range;
 }
 
+if( isset($_GET["div"]) ){
+    $div = intval($_GET["div"]);
+    $_SESSION["div"] = $div;
+}else{
+    if( isset($_SESSION["div"]) ){
+        $div = $_SESSION["div"];
+    }
+}
+
+for( $i = 0; $i <= $div; $i++ ){
+    $zone_count[$i] = 0;
+}
+
+mydump("div:".$div);
+mydump($zone_count);
 
 $base_param = [
     "format"=>"json",
@@ -47,8 +69,27 @@ $url = $rest_uri."?".http_build_query(array_merge($base_param,[
 $json = file_get_contents_cache($url);
 $obj  = json_decode($json);
 if( $obj->{"gnavi"}->{"error"}->{"code"} == 429 ){
-    echo "429";
-    mydump($obj);
+    $desc = [
+        "APIの利用上限に達したため",
+        "サービスをご利用いただけません。",
+        "またのご利用をお待ちしております。",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ];
+    $ret = [];
+    for( $i=0; $i<10; $i++ ){
+        array_push($ret,[
+            'name'=>$desc[$i],
+            'lat'=>$lat+rand(-9,9)/2000,
+            'lng'=>$lon+rand(-9,9)/2000
+        ]);
+    }
+    echo json_encode($ret);
     exit();
 }
 $total = $obj->total_hit_count;
@@ -56,19 +97,13 @@ mydump("total_hit_count");
 mydump($total);
 
 // ランクが低い順に取得
-$ret = [];
-$ret_num = 0;
-$hit_per_page = 10;
-$hit_per_photo_page = 0;
-$zone_count = [];
 for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
 
     mydump("offset:".$i);
 
     $url = $rest_uri."?".http_build_query(array_merge($base_param,[
             "offset"=>$i,
-            "hit_per_page"=>10,
-            //"hit_per_page"=>$hit_per_page,
+            "hit_per_page"=>$hit_per_page,
             "latitude"=>$lat,
             "longitude"=>$lon,
             "range"=>$range
@@ -121,8 +156,6 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                 $flag = true;
                 $zone = 0;
 
-                mydump($spot->{'id'});
-
                 // 写真がある場合はループを抜ける
                 if(checkString($spot->{'image_url'}->{'shop_image1'})){
                     mydump($spot->{'id'}." - shop photo");
@@ -135,20 +168,36 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                     $flag = false;
                 }
 
-                // 隣接する場合はループを抜ける
-                $atan2 = 180 + 180 * atan2($spot->{'latitude'}-$lat,$spot->{'longitude'}-$lon) / M_PI;
-                $zone = round($atan2/10);//360度を10度刻み
+                // 隣接する（同一zoneにある）場合はループを抜ける
+                $deg = 180 + rad2deg( atan2($spot->{'latitude'}-$lat,$spot->{'longitude'}-$lon) );
+                $zone = round($deg/(360/$div));
+                mydump("zone:".$zone);
+                mydump("min:".min($zone_count));
+                mydump("zone_count:".$zone_count[$zone]);
                 if( isset($zone_count[$zone]) ){
-                    mydump($spot->{'id'}." - neighbor - ".$zone);
-                    $flag = false;
-                }else{
-                    $zone_count[$zone] = 1;
+                    if( $zone_count[$zone] < min($zone_count) + 3 ){
+                        $zone_count[$zone] = $zone_count[$zone] + 1;
+                    }else{
+                        mydump($spot->{'id'}." - neighbor - ".$zone);
+                        $flag = false;
+                    }
                 }
+                /*
+                if( $zone_count[$zone] == min($zone_count) ){
+                    $zone_count[$zone] = $zone_count[$zone] + 1;
+                }else{
+                    mydump($spot->{'id'}." - neighbor - ".$zone);
+                    //$flag = false;
+                }
+                */
 
                 if( $flag == true ){
+                    mydump($spot->{'id'}." d".round($deg)." z".$zone);
                     array_push($ret,[
                         'name'=>$spot->{'name'},
+                        'id'=>$spot->{'id'},
                         'offset'=>$i,
+                        'deg'=>round($deg),
                         'zone'=>$zone,
                         'url'=>$spot->{'url'},
                         'lat'=>$spot->{'latitude'},
@@ -164,37 +213,9 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
     }
 }
 
+mydump($zone_count);
+
 header("Content-Type: application/json; charset=utf-8");
-array_multisort(array_column($ret,'zone'),$ret);
+array_multisort(array_column($ret,'deg'),$ret);
 $ret = json_encode($ret);
 echo $ret;
-
-//文字列であるかをチェック
-function checkString($input)
-{
-    if(isset($input) && is_string($input)) {
-        return true;
-    }else{
-        return false;
-    }
-}
-
-// 距離を計算
-function compute_dist($lat1, $lng1, $lat2, $lng2){
-    $GRS80_A = 6377397.155;
-    $GRS80_E2 = 0.00667436061028297;
-    $GRS80_MNUM = 6334832.10663254;
-
-    $mu_y = deg2rad($lat1 + $lat2)/2;
-    $W = sqrt(1-$GRS80_E2*pow(sin($mu_y),2));
-    $W3 = $W*$W*$W;
-    $M = $GRS80_MNUM/$W3;
-    $N = $GRS80_A/$W;
-    $dx = deg2rad($lng1 - $lng2);
-    $dy = deg2rad($lat1 - $lat2);
-
-    $dist = sqrt(pow($dy*$M,2) + pow($dx*$N*cos($mu_y),2)) / 1000;
-
-    return $dist;
-
-}

@@ -5,7 +5,7 @@ session_start();
 $_SESSION = [];
 
 // キャッシュを削除
-foreach(glob('cash/*') as $file){
+foreach(glob('cache/*') as $file){
     if(is_file($file)){
         echo htmlspecialchars($file);
         unlink($file);
