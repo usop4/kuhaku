@@ -112,10 +112,6 @@ if( isset($_GET["plugin"]) ){
                 </div>
             </li>
         </ul>
-        <form action="geocoder.php" class="form-inline my-2 my-lg-0">
-            <input name="address" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">検索</button>
-        </form>
     </div>
 
 </nav>
@@ -146,6 +142,11 @@ if( isset($_GET["plugin"]) ){
             <div><img src="icon/7.gif"><span id="7"><img src="icon/loading.gif"></span><a class="link7">[i]</a></div>
             <div><img src="icon/8.gif"><span id="8"><img src="icon/loading.gif"></span><a class="link8">[i]</a></div>
             <div><img src="icon/9.gif"><span id="9"><img src="icon/loading.gif"></span><a class="link9">[i]</a></div>
+
+            <?php if(!$debug){echo "<!--";}?>
+            <button id="up" class="btn btn-outline-primary" type="button">↑</button>
+            <button id="down" class="btn btn-outline-primary" type="button">↓</button>
+            <?php if(!$debug){echo "-->";}?>
             <?php
             if( $debug == true ){
                 var_dump($_SESSION);
@@ -158,16 +159,23 @@ if( isset($_GET["plugin"]) ){
         </div>
     </div>
 
-    <?php if(!$debug){echo "<!--";}?>
-    <button id="up" class="btn btn-outline-primary" type="button">↑</button>
-    <button id="down" class="btn btn-outline-primary" type="button">↓</button>
-    <?php if(!$debug){echo "-->";}?>
-    <button id="reload" class="btn btn-outline-primary" type="button">更新</button>
-    <button id="location" class="btn btn-outline-primary" type="button">現在地</button>
-    <a href="https://api.gnavi.co.jp/api/scope/" target="_blank">
-        <img src="https://api.gnavi.co.jp/api/img/credit/api_90_35.gif" width="90" height="35" border="0" alt="グルメ情報検索サイト　ぐるなび">
-    </a>
-
+    <form>
+        <div class="form-row align-items-center">
+            <div class="col-auto">
+                <button id="reload" type="button" class="btn btn-outline-primary">更新</button>
+            </div>
+            <div class="col-auto">
+                <button id="location" type="button" class="btn btn-outline-primary">現在地</button>
+            </div>
+            <div class="col-auto">
+                <label class="sr-only" for="inlineFormInput">Name</label>
+                <input name="address" type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInput" value="東京都新宿区">
+            </div>
+            <div class="col-auto">
+                <button id="geocode" type="button" class="btn btn-outline-primary">検索</button>
+            </div>
+        </div>
+    </form>
 
 </div><!-- /.container -->
 
@@ -180,129 +188,24 @@ if( isset($_GET["plugin"]) ){
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
 <script type="text/javascript" charset="utf-8" src="https://map.yahooapis.jp/js/V1/jsapi?appid=<?php echo $appid;?>"></script>
+<script type="text/javascript" charset="utf-8" src="kuhaku.js"></script>
 <script>
 
     var map;
     var marker = [];
     var icon = [];
     var plugin = "<?php echo $plugin;?>";
+    var lat = <?php echo $lat;?>;
+    var lng = <?php echo $lng;?>;
+    var zoom = 16;
 
     $(function() {
-
-        var lat = <?php echo $lat;?>;
-        var lng = <?php echo $lng;?>;
-        var zoom = 16;
-
-        // Yahoo Map
-        map = new Y.Map("map");
-        map.addControl(new Y.CenterMarkControl({
-            visibleButton: true ,
-            visible      : true
-        }));
-        map.addControl(new Y.ZoomControl());
-        map.addControl(new Y.LayerSetControl());
-        map.addControl(new Y.ScaleControl());
-        map.drawMap(new Y.LatLng(lat,lng), zoom, Y.LayerSetId.NORMAL);
-
-        for(var i=0;i<10;i++){
-            icon[i] = new Y.Icon('icon/'+i+'.gif');
-        }
-
-        loadSpots(false);
-
         $("#plugin").val("<?php echo $plugin;?>");
 
         $("#plugin").change(function(){
-            console.log($(this).val());
             location.href = "index.php?plugin="+$(this).val();
         });
-
-        $("#reload").click(function(){
-            loadSpots(true);
-        });
-
-        $("#location").click(function(){
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function (pos) {
-                        map.setZoom(
-                            16,
-                            true,
-                            new Y.LatLng(
-                                pos.coords.latitude,
-                                pos.coords.longitude
-                        ));
-                        loadSpots(true);
-                    })
-            }
-        });
-
-        $("#up").click(function(){
-            test(0.001);
-        });
-        $("#down").click(function(){
-            test(-0.001);
-        });
-
-
     });
-
-    function mode2url(mode){
-        switch(mode){
-            case "mode1":
-                return "guru.php?range=2&div=16";
-            case "mode2":
-                return "guru.php?range=2&div=1";
-            case "mode3":
-                return "guru.php?range=3&div=1";
-        }
-    }
-
-    function test(val){
-        var latlng = map.getCenter();
-        var lat = latlng.lat() + val;
-        var lng = latlng.lng();
-        map.panTo(new Y.LatLng(lat,lng));
-        loadSpots(true);
-    }
-
-    function loadSpots(push_flag){
-        var latlng = map.getCenter();
-        var zoom = map.getZoom();
-        var lat = latlng.lat();
-        var lng = latlng.lng();
-        var url = mode2url(plugin)+"&lat="+lat+"&lon="+lng;
-
-        map.setZoom(16,true);
-
-        for(var i=0;i<10;i++){
-            map.removeFeature(marker[i]);
-            $("#"+i).html('<img src="icon/loading.gif">');
-        }
-
-        $.ajax({
-            url: url,
-            dataType:"json",
-            success: function(spots){
-                console.log(spots);
-                for(var i in spots){
-                    console.log(spots[i]["offset"]+" "+spots[i]["name"]);
-                    $("#"+i).html(spots[i]["name"]);
-                    $(".link"+i).attr("href",spots[i]["url"]);
-                    $(".link"+i).attr("target","_blank");
-                    marker[i] = new Y.Marker(
-                        new Y.LatLng(spots[i]["lat"],spots[i]["lng"]),
-                        {icon: icon[i]}
-                    );
-                    map.addFeature(marker[i]);
-                }
-            }
-        });
-        console.log(url);
-        if( push_flag == true ){
-            window.history.pushState(null,null,"?lat="+lat+"&lng="+lng);
-        }
-    }
 
 </script>
 </body>

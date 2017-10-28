@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once("common.php");
 require_once("secret.php");
 
@@ -17,9 +19,10 @@ $location = new SimpleXMLElement($contents);
 if( $location->attributes()->totalResultsReturned != 0 ){
     $cordinates = $location->Feature[0]->Geometry->Coordinates;
     list($lng,$lat) = explode(",",$cordinates);
-    header('location: index.php?lat='.$lat.'&lng='.$lng);
+    echo json_encode([
+        "lat"=>$lat,
+        "lng"=>$lng
+    ]);
+    $_SESSION["lat"] = $lat;
+    $_SESSION["lng"] = $lng;
 }
-else{
-    echo "見つかりませんでした（涙";
-}
-
