@@ -13,7 +13,7 @@ $photo_uri = "https://api.gnavi.co.jp/PhotoSearchAPI/20150630/";
 $lat   = 35.7192805;
 $lon   = 139.6509221;
 $range = 2;//1:300m、2:500m、3:1000m、4:2000m、5:3000m
-$div = 4;
+$div = 1;//方位分散
 
 $ret = [];
 $ret_num = 0;
@@ -34,6 +34,10 @@ if( isset($_GET["lon"]) ){
 if( isset($_GET["range"]) ){
     $range = intval($_GET["range"]);
     $_SESSION["range"] = $range;
+}else{
+    if( isset($_SESSION["range"]) ){
+        $range = $_SESSION["range"];
+    }
 }
 
 if( isset($_GET["div"]) ){
@@ -182,14 +186,6 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                         $flag = false;
                     }
                 }
-                /*
-                if( $zone_count[$zone] == min($zone_count) ){
-                    $zone_count[$zone] = $zone_count[$zone] + 1;
-                }else{
-                    mydump($spot->{'id'}." - neighbor - ".$zone);
-                    //$flag = false;
-                }
-                */
 
                 if( $flag == true ){
                     mydump($spot->{'id'}." d".round($deg)." z".$zone);

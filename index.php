@@ -1,4 +1,9 @@
 <?php
+if (empty($_SERVER['HTTPS'])) {
+    header("Location: https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
+    exit;
+}
+
 $debug = false;
 if( substr_count( $_SERVER["SCRIPT_NAME"], "sandbox") ){
     $debug = "true";
@@ -6,8 +11,8 @@ if( substr_count( $_SERVER["SCRIPT_NAME"], "sandbox") ){
 
 require_once("secret.php");
 
-$lat = 35.71507331660124;
-$lng = 139.6873127755067;
+$lat = 35.69384330;
+$lng = 139.70355740;
 $plugin = "mode1";
 
 session_start();
@@ -61,17 +66,30 @@ if( isset($_GET["plugin"]) ){
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <title>ku-haku</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
-    <title>ku-haku</title>
+    <meta property="fb:app_id" content="171184180129440" />
+    <meta property="og:url" content="https://barcelona-prototype.com/kuhaku/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ku-haku - 自転車と一緒に「空白」を探す" />
+    <meta property="og:description" content="ぐるなびの情報を元に、まだ写真や口コミが登録されていない店を発見するサービスです。" />
+    <meta property="og:image" content="https://barcelona-prototype.com/kuhaku/landing/img/og.png" />
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/starter-template.css" rel="stylesheet">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-55877107-6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-55877107-6');
+    </script>
 
 </head>
 <body>
