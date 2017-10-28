@@ -1,11 +1,14 @@
 <?php
 $debug = false;
+if( substr_count( $_SERVER["SCRIPT_NAME"], "sandbox") ){
+    $debug = "true";
+}
 
 require_once("secret.php");
 
 $lat = 35.71507331660124;
 $lng = 139.6873127755067;
-$plugin = "guru.php?range=2";// ぐるなび500km圏内
+$plugin = "mode1";
 
 session_start();
 
@@ -93,7 +96,7 @@ if( isset($_GET["plugin"]) ){
         </ul>
         <form action="geocoder.php" class="form-inline my-2 my-lg-0">
             <input name="address" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">ken-saku</button>
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">検索</button>
         </form>
     </div>
 
@@ -107,9 +110,10 @@ if( isset($_GET["plugin"]) ){
             <form>
                 <div class="form-group">
                     <select class="form-control form-control-sm" id="plugin">
-                        <option value="guru.php?range=2">ぐるなび500m圏内、口コミなし</option>
-                        <option value="guru.php?range=3">ぐるなび1km圏内、口コミなし</option>
-                        <option value="dummy.php?">ランダム表示（プラグイン募集中）</option>
+                        <option value="mode1">ぐるなび500m圏内、口コミなし、方位分散なし</option>
+                        <option value="mode2">ぐるなび500m圏内、口コミなし、16方位分散</option>
+                        <option value="mode3">ぐるなび1km圏内、口コミなし、16方位分散</option>
+                        <option value="dummy">テスト表示（プラグイン募集中）</option>
                     </select>
                 </div>
             </form>
@@ -124,11 +128,6 @@ if( isset($_GET["plugin"]) ){
             <div><img src="icon/7.gif"><span id="7"><img src="icon/loading.gif"></span><a class="link7">[i]</a></div>
             <div><img src="icon/8.gif"><span id="8"><img src="icon/loading.gif"></span><a class="link8">[i]</a></div>
             <div><img src="icon/9.gif"><span id="9"><img src="icon/loading.gif"></span><a class="link9">[i]</a></div>
-
-            <a href="http://api.gnavi.co.jp/api/scope/" target="_blank">
-                <img src="http://api.gnavi.co.jp/api/img/credit/api_90_35.gif" width="90" height="35" border="0" alt="グルメ情報検索サイト　ぐるなび">
-            </a>
-
             <?php
             if( $debug == true ){
                 var_dump($_SESSION);
@@ -141,6 +140,16 @@ if( isset($_GET["plugin"]) ){
         </div>
     </div>
 
+    <?php if(!$debug){echo "<!--";}?>
+    <button id="up" class="btn btn-outline-primary" type="button">↑</button>
+    <button id="down" class="btn btn-outline-primary" type="button">↓</button>
+    <?php if(!$debug){echo "-->";}?>
+    <button id="reload" class="btn btn-outline-primary" type="button">更新</button>
+    <button id="location" class="btn btn-outline-primary" type="button">現在地</button>
+    <a href="https://api.gnavi.co.jp/api/scope/" target="_blank">
+        <img src="https://api.gnavi.co.jp/api/img/credit/api_90_35.gif" width="90" height="35" border="0" alt="グルメ情報検索サイト　ぐるなび">
+    </a>
+
 
 </div><!-- /.container -->
 
@@ -152,7 +161,7 @@ if( isset($_GET["plugin"]) ){
 <script src="js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
-<script type="text/javascript" charset="utf-8" src="http://js.api.olp.yahooapis.jp/OpenLocalPlatform/V1/jsapi?appid=<?php echo $appid;?>"></script>
+<script type="text/javascript" charset="utf-8" src="https://map.yahooapis.jp/js/V1/jsapi?appid=<?php echo $appid;?>"></script>
 <script>
 
     var map;
@@ -172,12 +181,10 @@ if( isset($_GET["plugin"]) ){
             visibleButton: true ,
             visible      : true
         }));
-        map.addControl(new Y.SliderZoomControl());
+        map.addControl(new Y.ZoomControl());
+        map.addControl(new Y.LayerSetControl());
+        map.addControl(new Y.ScaleControl());
         map.drawMap(new Y.LatLng(lat,lng), zoom, Y.LayerSetId.NORMAL);
-
-        map.bind("moveend", function(){
-            loadSpots(true);
-        });
 
         for(var i=0;i<10;i++){
             icon[i] = new Y.Icon('icon/'+i+'.gif');
@@ -192,14 +199,63 @@ if( isset($_GET["plugin"]) ){
             location.href = "index.php?plugin="+$(this).val();
         });
 
+        $("#reload").click(function(){
+            loadSpots(true);
+        });
+
+        $("#location").click(function(){
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                        map.setZoom(
+                            16,
+                            true,
+                            new Y.LatLng(
+                                pos.coords.latitude,
+                                pos.coords.longitude
+                        ));
+                        loadSpots(true);
+                    })
+            }
+        });
+
+        $("#up").click(function(){
+            test(0.001);
+        });
+        $("#down").click(function(){
+            test(-0.001);
+        });
+
+
     });
+
+    function mode2url(mode){
+        switch(mode){
+            case "mode1":
+                return "guru.php?range=2&div=16";
+            case "mode2":
+                return "guru.php?range=2&div=1";
+            case "mode3":
+                return "guru.php?range=3&div=1";
+        }
+    }
+
+    function test(val){
+        var latlng = map.getCenter();
+        var lat = latlng.lat() + val;
+        var lng = latlng.lng();
+        map.panTo(new Y.LatLng(lat,lng));
+        loadSpots(true);
+    }
 
     function loadSpots(push_flag){
         var latlng = map.getCenter();
         var zoom = map.getZoom();
         var lat = latlng.lat();
         var lng = latlng.lng();
-        var url = plugin+"&lat="+lat+"&lon="+lng;
+        var url = mode2url(plugin)+"&lat="+lat+"&lon="+lng;
+
+        map.setZoom(16,true);
 
         for(var i=0;i<10;i++){
             map.removeFeature(marker[i]);
@@ -229,7 +285,6 @@ if( isset($_GET["plugin"]) ){
             window.history.pushState(null,null,"?lat="+lat+"&lng="+lng);
         }
     }
-
 
 </script>
 </body>
