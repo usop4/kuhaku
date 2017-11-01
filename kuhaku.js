@@ -36,16 +36,20 @@ $(function() {
     });
 
     $("#geocode").click(function(){
-        geocode();
+        var address = $("[name=address]").val();
+        if( address != "" ){
+            $.ajax({
+                url: "geocoder.php?address="+address,
+                dataType:"json",
+                success: function(json){
+                    var lat = json["lat"];
+                    var lng = json["lng"]
+                    map.setZoom(16,true,new Y.LatLng(lat,lng));
+                    loadSpots(lat,lng,true);
+                }
+            });
+        }
     });
-
-    $("#up").click(function(){
-        test(0.001);
-    });
-    $("#down").click(function(){
-        test(-0.001);
-    });
-
 
 });
 
@@ -60,14 +64,6 @@ function mode2url(mode){
         case "mode3":
             return "guru.php?range=3&div=1";
     }
-}
-
-function test(val){
-    var latlng = map.getCenter();
-    var lat = latlng.lat() + val;
-    var lng = latlng.lng();
-    map.panTo(new Y.LatLng(lat,lng));
-    loadSpots(lat,lng,true);
 }
 
 function loadSpots(lat,lng,push_flag){
@@ -102,19 +98,3 @@ function loadSpots(lat,lng,push_flag){
     }
 }
 
-function geocode(){
-    var address = $("[name=address]").val();
-    console.log(address);
-    if( address != "" ){
-        $.ajax({
-            url: "geocoder.php?address="+address,
-            dataType:"json",
-            success: function(json){
-                var lat = json["lat"];
-                var lng = json["lng"]
-                map.setZoom(16,true,new Y.LatLng(lat,lng));
-                loadSpots(lat,lng,true);
-            }
-        });
-    }
-}

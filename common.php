@@ -22,8 +22,8 @@ function file_get_contents_cache($url){
 }
 
 // ログ出力
-function mydump($data, $overwrite = TRUE ){
-    $fname = "log.txt";
+function mydump($data, $overwrite = TRUE, $fname = "log.txt" ){
+    date_default_timezone_set('Asia/Tokyo');
     ob_start();
     var_dump($data);
     $out = ob_get_contents();

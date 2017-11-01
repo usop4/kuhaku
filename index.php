@@ -82,15 +82,6 @@ if( isset($_GET["plugin"]) ){
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
 
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-55877107-6"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'UA-55877107-6');
-    </script>
-
 </head>
 <body>
 
@@ -105,10 +96,10 @@ if( isset($_GET["plugin"]) ){
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">このサイトは？</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="#">ぐるなびの情報を元に</a>
-                    <a class="dropdown-item" href="#">１ｋｍ程度の距離にある</a>
-                    <a class="dropdown-item" href="#">まだ写真が登録されていない</a>
-                    <a class="dropdown-item" href="#">お店を発見するサービスです</a>
+                    <a class="dropdown-item" href="landing">ぐるなびの情報を元に</a>
+                    <a class="dropdown-item" href="landing">１ｋｍ程度の距離にある</a>
+                    <a class="dropdown-item" href="landing">まだ写真が登録されていない</a>
+                    <a class="dropdown-item" href="landing">お店を発見するサービスです</a>
                 </div>
             </li>
         </ul>
@@ -144,8 +135,7 @@ if( isset($_GET["plugin"]) ){
             <div><img src="icon/9.gif"><span id="9"><img src="icon/loading.gif"></span><a class="link9">[i]</a></div>
 
             <?php if(!$debug){echo "<!--";}?>
-            <button id="up" class="btn btn-outline-primary" type="button">↑</button>
-            <button id="down" class="btn btn-outline-primary" type="button">↓</button>
+            <button id="test" class="btn btn-outline-primary" type="button">test</button>
             <?php if(!$debug){echo "-->";}?>
             <?php
             if( $debug == true ){
@@ -208,5 +198,15 @@ if( isset($_GET["plugin"]) ){
     });
 
 </script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<?php if(!$debug){echo "<!--";}?>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-55877107-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-55877107-6');
+</script>
+<?php if(!$debug){echo "-->";}?>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <?php
 
 session_start();
+$time_start = microtime(true);
 
 require_once("common.php");
 require_once("secret.php");
@@ -54,7 +55,6 @@ for( $i = 0; $i <= $div; $i++ ){
 }
 
 mydump("div:".$div);
-mydump($zone_count);
 
 $base_param = [
     "format"=>"json",
@@ -97,8 +97,7 @@ if( $obj->{"gnavi"}->{"error"}->{"code"} == 429 ){
     exit();
 }
 $total = $obj->total_hit_count;
-mydump("total_hit_count");
-mydump($total);
+mydump("total_hit_count:".$total);
 
 // ランクが低い順に取得
 for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
@@ -179,7 +178,7 @@ for( $i = $total - $hit_per_page; $i > $hit_per_page; $i = $i - $hit_per_page ){
                 mydump("min:".min($zone_count));
                 mydump("zone_count:".$zone_count[$zone]);
                 if( isset($zone_count[$zone]) ){
-                    if( $zone_count[$zone] < min($zone_count) + 3 ){
+                    if( $zone_count[$zone] < min($zone_count) + 2 ){
                         $zone_count[$zone] = $zone_count[$zone] + 1;
                     }else{
                         mydump($spot->{'id'}." - neighbor - ".$zone);
@@ -215,3 +214,7 @@ header("Content-Type: application/json; charset=utf-8");
 array_multisort(array_column($ret,'deg'),$ret);
 $ret = json_encode($ret);
 echo $ret;
+
+$time = microtime(true) - $time_start;
+mydump($time);
+mydump($time,true,"performance.log");
