@@ -10,6 +10,12 @@ $(function() {
     map.addControl(new Y.ScaleControl());
     map.drawMap(new Y.LatLng(lat,lng), zoom, Y.LayerSetId.NORMAL);
 
+    map.bind('moveend',function(){
+        $("#message").html("再検索する場合は更新ボタンを押してください");
+        $("#message").fadeIn(800);
+        $("#message").fadeOut(800);
+    });
+
     for(var i=0;i<10;i++){
         icon[i] = new Y.Icon('icon/'+i+'.gif');
     }
@@ -78,6 +84,10 @@ function loadSpots(lat,lng,push_flag){
         url: url,
         dataType:"json",
         success: function(spots){
+            for(var i=0;i<10;i++){
+                map.removeFeature(marker[i]);
+                $("#"+i).html('');
+            }
             console.log(spots);
             for(var i in spots){
                 //console.log(spots[i]["offset"]+" "+spots[i]["name"]);

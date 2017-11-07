@@ -134,6 +134,8 @@ if( isset($_GET["plugin"]) ){
             <div><img src="icon/8.gif"><span id="8"><img src="icon/loading.gif"></span><a class="link8">[i]</a></div>
             <div><img src="icon/9.gif"><span id="9"><img src="icon/loading.gif"></span><a class="link9">[i]</a></div>
 
+            <div id="message"></div>
+
             <?php if(!$debug){echo "<!--";}?>
             <button id="test" class="btn btn-outline-primary" type="button">test</button>
             <?php if(!$debug){echo "-->";}?>
@@ -178,7 +180,7 @@ if( isset($_GET["plugin"]) ){
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="js/ie10-viewport-bug-workaround.js"></script>
 <script type="text/javascript" charset="utf-8" src="https://map.yahooapis.jp/js/V1/jsapi?appid=<?php echo $appid;?>"></script>
-<script type="text/javascript" charset="utf-8" src="kuhaku.js"></script>
+<script type="text/javascript" charset="utf-8" src="kuhaku.js?<?php echo filemtime("kuhaku.js");?>"></script>
 <script>
 
     var map;
